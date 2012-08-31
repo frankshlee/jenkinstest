@@ -70,6 +70,9 @@ cd ~/
 
 
 # install for TestSwarm https://github.com/jquery/testswarm
+# TODO: include a check here if mysql-server is already installed.
+# TODO: If mysql-server is going to be installed, set unattended. It asks for mysql root passwd.
+#   http://stackoverflow.com/questions/7739645/install-mysql-on-ubuntu-without-password-prompt
 sudo apt-get -y install mysql-server nginx php5
 if [ ! -d ~/testswarm ]; then
   git clone https://github.com/jquery/testswarm.git
