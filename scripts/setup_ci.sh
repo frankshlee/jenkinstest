@@ -68,7 +68,7 @@ fi
 <<<<<<< HEAD:scripts/setup.sh
 exitok $? ooooooooooooodownloaded_latest_jenkinsooooooooooooooooo
 =======
-exitok $? _____________downloaded_jenkins_1.476_______________
+exitok $? _____________downloaded_latest_jenkins________________
 >>>>>>> c4512b1486ece685436c4bd4770f1d9bb9e47632:scripts/setup_ci.sh
 cd ~/
 
