@@ -62,9 +62,9 @@ if [ $? -ne 0 ]; then
 fi
 cd /usr/share/jenkins
 if [ ! -f /usr/share/jenkins/jenkins.war ]; then
-  sudo wget http://updates.jenkins-ci.org/download/war/1.476/jenkins.war
+  sudo wget https://updates.jenkins-ci.org/latest/jenkins.war
 fi
-exitok $? ooooooooooooodownloaded_jenkins_1.476ooooooooooooooooo
+exitok $? ooooooooooooodownloaded_latest_jenkinsooooooooooooooooo
 cd ~/
 
 
