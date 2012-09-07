@@ -62,9 +62,31 @@ if [ $? -ne 0 ]; then
   sudo mkdir /usr/share/jenkins
 fi
 cd /usr/share/jenkins
-if [ ! -f /usr/share/jenkins/jenkins.war ]; then
-  sudo wget https://updates.jenkins-ci.org/latest/jenkins.war
+# Added "--no-check-certificate" because of the below error:
+#ERROR: certificate common name “jenkins-ci.org” doesn’t match requested host name “updates.jenkins-ci.org”.
+#To connect to updates.jenkins-ci.org insecurely, use ‘--no-check-certificate’.
+# also...
+# don't check if it exists, because the old version may exist.
+#if [ ! -f /usr/share/jenkins/jenkins.war ]; then
+  sudo wget --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
+/etc/init.d/jenkins status
+jenkins_status=`echo $?`
+# return 0 is running. return 3 is not running.
+if [ $jenkins_status -eq "0" ]; then
+  #Jenkins Continuous Integration Server is running with the pid 13591
+  jenkins_version=`java -jar /root/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
+  /etc/init.d/jenkins stop
+  mv /usr/share/jenkins/jenkins.war /usr/share/jenkins/jenkins.war.v$jenkins_version
+  /etc/init.d/jenkins start
+else 
+  /etc/init.d/jenkins start
+  jenkins_version=`java -jar /root/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
+  /etc/init.d/jenkins stop
+  mv /usr/share/jenkins/jenkins.war /usr/share/jenkins/jenkins.war.v$jenkins_version
+  /etc/init.d/jenkins start
 fi
+
+#fi
 <<<<<<< HEAD:scripts/setup.sh
 exitok $? ooooooooooooodownloaded_latest_jenkinsooooooooooooooooo
 =======
