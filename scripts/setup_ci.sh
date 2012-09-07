@@ -45,12 +45,18 @@ ls -l /etc/default/locale
 cd ~/
 
 # install Jenkins and java stuff for java testing.
-wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -
-exitok $? _____________________added_jenkins_key_to_apt_________o
-echo "deb http://pkg.jenkins-ci.org/debian binary/" | sudo tee -a /etc/apt/sources.list
-sudo apt-get update
-sudo apt-get -y install openjdk-6-jre openjdk-6-jdk ant maven2 clamav git curl
-exitok $? ____________installed_openjdk-6_sdk_jre_ant_maven2_clamav_git____________
+if [ ! -d /usr/share/jenkins ]; then
+  wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -
+  exitok $? _____________________added_jenkins_key_to_apt_________o
+  grep "deb http://pkg.jenkins-ci.org/debian binary/" /etc/apt/sources.list
+  already_there=`echo $?`
+  if [ "x$already_there" = "x1" ]; then
+    echo "deb http://pkg.jenkins-ci.org/debian binary/" | sudo tee -a /etc/apt/sources.list
+  fi
+  sudo apt-get update
+  sudo apt-get -y install openjdk-6-jre openjdk-6-jdk ant maven2 clamav git curl
+  exitok $? ____________installed_openjdk-6_sdk_jre_ant_maven2_clamav_git____________
+fi
 
 # remove jenkins if it's already install.
 # well, let's get back to this later.
