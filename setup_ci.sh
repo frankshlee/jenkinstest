@@ -57,9 +57,6 @@ if [ ! -d /usr/share/jenkins ]; then
   exitok $? ____________installed_openjdk-6_sdk_jre_ant_maven2_clamav_git____________
 fi
 
-# remove jenkins if it's already install.
-# well, let's get back to this later.
-#sudo apt-get -y --purge remove jenkins
 
 # install jenkins
 sudo apt-get -y install jenkins
@@ -68,17 +65,21 @@ if [ $? -ne 0 ]; then
 fi
 cd /usr/share/jenkins
 # Added "--no-check-certificate" because of the below error:
-#ERROR: certificate common name “jenkins-ci.org” doesn’t match requested host name “updates.jenkins-ci.org”.
-#To connect to updates.jenkins-ci.org insecurely, use ‘--no-check-certificate’.
+#ERROR: certificate common name "jenkins-ci.org" doesn't match requested host name "updates.jenkins-ci.org".
+#To connect to updates.jenkins-ci.org insecurely, use '--no-check-certificate'.
 # also...
 # don't check if it exists, because the old version may exist.
 #if [ ! -f /usr/share/jenkins/jenkins.war ]; then
 /etc/init.d/jenkins status
 jenkins_status=`echo $?`
 # return 0 is running. return 3 is not running.
-if [ $jenkins_status -eq "0" ]; then
+if [ $jenkins_status -eq 0 ]; then
   #Jenkins Continuous Integration Server is running with the pid 13591
-  jenkins_version=`java -jar /root/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
+  # TODO: if jenkins-cli.jar does not exist, get it.
+  if [ ! -f /usr/share/jenkins/jenkins-cli.jar ]; then
+  	wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+  fi
+  jenkins_version=`java -jar /usr/share/jenkins/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
   echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
   if [ ! -f /usr/share/jenkins/jenkins.war.v$jenkins_version ]; then
         sudo wget -O jenkins.war.newest --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
@@ -88,12 +89,16 @@ if [ $jenkins_status -eq "0" ]; then
   	/etc/init.d/jenkins start
   	sleep 2
   	echo "Grabbing jenkins-cli.jar."
-  	wget -O /root/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+  	wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
   	exitok $? ____________downloaded_jenkins-cli.jar_______________
   fi
 else
   /etc/init.d/jenkins start
-  jenkins_version=`java -jar /root/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
+  sleep 5
+  if [ ! -f /usr/share/jenkins/jenkins-cli.jar ]; then
+  	wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+  fi
+  jenkins_version=`java -jar /usr/share/jenkins/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
   echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
   if [ ! -f /usr/share/jenkins/jenkins.war.v$jenkins_version ]; then
   	sudo wget -O jenkins.war.newest --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
@@ -105,7 +110,7 @@ else
   	# setup Jenkins. Usually a browser to http://machine:8080 works, and manually configure.
   	# But let's try to do it automatically via cli.
   	echo "Grabbing jenkins-cli.jar."
-  	wget -O /root/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+  	wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
   	exitok $? ____________downloaded_jenkins-cli.jar_______________
   fi
 fi
@@ -128,17 +133,17 @@ fi
 # The apt-get should have started up Jenkins.
 # It takes some time for Jenkins to download the latest plugins
 sleep 10
-sudo java -jar ~/jenkins-cli.jar -s http://localhost:8080 version
+sudo java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8080 version
 echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
 
 # Update the Plugins
 curl  -L http://updates.jenkins-ci.org/update-center.json | sed '1d;$d' | curl -X POST -H 'Accept: application/json' -d @- http://localhost:8080/updateCenter/byId/default/postBack
-#sudo java -jar ~/jenkins-cli.jar -s http://localhost:8080 restart
+#sudo java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8080 restart
 sleep 20
-sudo java -jar ~/jenkins-cli.jar -s http://localhost:8080 install-plugin cvs subversion translation git github audit-trail createjobadvanced blame-upstream-commiters email-ext statusmonitor all-changes checkstyle dry log-parser pmd violations ws-cleanup clamav ansicolor token-macro maven-plugin instant-messaging xcode-plugin skype-notifier growl ircbot greenballs
+sudo java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8080 install-plugin cvs subversion translation git github audit-trail createjobadvanced blame-upstream-commiters email-ext statusmonitor all-changes checkstyle dry log-parser pmd violations ws-cleanup clamav ansicolor token-macro maven-plugin instant-messaging xcode-plugin skype-notifier growl ircbot greenballs
 echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
 sleep 60
-sudo java -jar ~/jenkins-cli.jar -s http://localhost:8080 restart
+sudo java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8080 restart
 echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
 sleep 10
 
