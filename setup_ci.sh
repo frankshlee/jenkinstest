@@ -85,6 +85,10 @@ if [ $jenkins_status -eq "0" ]; then
   mv /usr/share/jenkins/jenkins.war /usr/share/jenkins/jenkins.war.v$jenkins_version
   mv /usr/share/jenkins/jenkins.war.newest /usr/share/jenkins/jenkins.war
   /etc/init.d/jenkins start
+  sleep 2
+  echo "Grabbing jenkins-cli.jar."
+  wget -O /root/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+  exitok $? ____________downloaded_jenkins-cli.jar_______________
 else
   /etc/init.d/jenkins start
   jenkins_version=`java -jar /root/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
@@ -92,6 +96,12 @@ else
   mv /usr/share/jenkins/jenkins.war /usr/share/jenkins/jenkins.war.v$jenkins_version
   mv /usr/share/jenkins/jenkins.war.newest /usr/share/jenkins/jenkins.war
   /etc/init.d/jenkins start
+  sleep 2
+  # setup Jenkins. Usually a browser to http://machine:8080 works, and manually configure.
+  # But let's try to do it automatically via cli.
+  echo "Grabbing jenkins-cli.jar."
+  wget -O /root/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+  exitok $? ____________downloaded_jenkins-cli.jar_______________
 fi
 
 exitok $? _____________downloaded_latest_jenkins________________
@@ -108,14 +118,6 @@ if [ ! -d ~/testswarm ]; then
   sudo cp testswarm/config/nginx-sample.conf /etc/nginx/sites-available/nginx.conf
 fi
 
-# setup Jenkins. Usually a browser to http://machine:8080 works, and manually configure.
-# But let's try to do it automatically via cli.
-if [ ! -f ~/jenkins-cli.jar ]; then
-  cd ~/
-  echo "The jenkins-cli.jar doesn't exist. Grabbing it."
-  wget http://localhost:8080/jnlpJars/jenkins-cli.jar
-  exitok $? ____________downloaded_jenkins-cli.jar_______________
-fi
 
 # The apt-get should have started up Jenkins.
 # It takes some time for Jenkins to download the latest plugins
