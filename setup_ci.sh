@@ -74,7 +74,7 @@ cd /usr/share/jenkins
 # also...
 # don't check if it exists, because the old version may exist.
 #if [ ! -f /usr/share/jenkins/jenkins.war ]; then
-sudo wget -o jenkins.war.newest --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
+sudo wget -O jenkins.war.newest --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
 /etc/init.d/jenkins status
 jenkins_status=`echo $?`
 # return 0 is running. return 3 is not running.
