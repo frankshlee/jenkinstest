@@ -74,7 +74,7 @@ cd /usr/share/jenkins
 # also...
 # don't check if it exists, because the old version may exist.
 #if [ ! -f /usr/share/jenkins/jenkins.war ]; then
-  sudo wget --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
+sudo wget -o jenkins.war.newest --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
 /etc/init.d/jenkins status
 jenkins_status=`echo $?`
 # return 0 is running. return 3 is not running.
@@ -83,12 +83,14 @@ if [ $jenkins_status -eq "0" ]; then
   jenkins_version=`java -jar /root/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
   /etc/init.d/jenkins stop
   mv /usr/share/jenkins/jenkins.war /usr/share/jenkins/jenkins.war.v$jenkins_version
+  mv /usr/share/jenkins/jenkins.war.newest /usr/share/jenkins/jenkins.war
   /etc/init.d/jenkins start
 else
   /etc/init.d/jenkins start
   jenkins_version=`java -jar /root/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
   /etc/init.d/jenkins stop
   mv /usr/share/jenkins/jenkins.war /usr/share/jenkins/jenkins.war.v$jenkins_version
+  mv /usr/share/jenkins/jenkins.war.newest /usr/share/jenkins/jenkins.war
   /etc/init.d/jenkins start
 fi
 
