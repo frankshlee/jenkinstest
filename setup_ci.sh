@@ -44,36 +44,44 @@ ls -l /etc/default/locale
 cd ~/
 
 # install Jenkins and java stuff for java testing.
-if [ ! -d /usr/share/jenkins ]; then
+grep pkg.jenkins-ci.org /etc/apt/sources.list
+if [ ! `echo $?` -ne 0 ];
   wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -
   exitok $? _____________________added_jenkins_key_to_apt_________o
-  grep "deb http://pkg.jenkins-ci.org/debian binary/" /etc/apt/sources.list
-  already_there=`echo $?`
-  if [ "x$already_there" = "x1" ]; then
-    echo "deb http://pkg.jenkins-ci.org/debian binary/" | sudo tee -a /etc/apt/sources.list
-  fi
-  sudo apt-get update
-  sudo apt-get -y install openjdk-6-jre openjdk-6-jdk ant maven2 clamav git curl
+  echo "deb http://pkg.jenkins-ci.org/debian binary/" | sudo tee -a /etc/apt/sources.list
+fi
+
+if [ ! -d /usr/lib/jvm/java-6-openjdk ]; then
+  apt-get update
+  apt-get -y install openjdk-6-jre openjdk-6-jdk ant maven2 clamav git curl
   exitok $? ____________installed_openjdk-6_sdk_jre_ant_maven2_clamav_git____________
 fi
 
-
 # install jenkins
-sudo apt-get -y install jenkins
-if [ $? -ne 0 ]; then
-  sudo mkdir /usr/share/jenkins
+#if [ ! -f /usr/share/jenkins/jenkins.war ]; then
+if [ ! -d /usr/share/jenkins ]; then
+  mkdir /usr/share/jenkins
+  apt-get -y install jenkins
 fi
+
 cd /usr/share/jenkins
 # Added "--no-check-certificate" because of the below error:
 #ERROR: certificate common name "jenkins-ci.org" doesn't match requested host name "updates.jenkins-ci.org".
 #To connect to updates.jenkins-ci.org insecurely, use '--no-check-certificate'.
 # also...
 # don't check if it exists, because the old version may exist.
-#if [ ! -f /usr/share/jenkins/jenkins.war ]; then
-/etc/init.d/jenkins status
-jenkins_status=`echo $?`
+if [ ! -f /etc/init.d/jenkins ]; then
+  /etc/init.d/jenkins status
+  jenkins_status=`echo $?`
+else
+  echo "the /etc/init.d/jenkins startup script is missing. Jenkins installation is incomplete."
+  echo "apt-get remote jenkins to remove but keep configs if you make any config changes."
+  echo "apt-get purge jenkins to remove everything including configs. And fix script."
+  exit 1
+fi
+
 # return 0 is running. return 3 is not running.
-if [ $jenkins_status -eq 0 ]; then
+if [ `echo $jenkins_status` -eq 0 ]; then
   #Jenkins Continuous Integration Server is running with the pid 13591
   # TODO: if jenkins-cli.jar does not exist, get it.
   if [ ! -f /usr/share/jenkins/jenkins-cli.jar ]; then
@@ -123,11 +131,12 @@ cd ~/
 # TODO: include a check here if mysql-server is already installed.
 # TODO: If mysql-server is going to be installed, set unattended. It asks for mysql root passwd.
 #   http://stackoverflow.com/questions/7739645/install-mysql-on-ubuntu-without-password-prompt
-sudo apt-get -y install mysql-server nginx php5
-if [ ! -d ~/testswarm ]; then
-  git clone https://github.com/jquery/testswarm.git
-  sudo cp testswarm/config/nginx-sample.conf /etc/nginx/sites-available/nginx.conf
-fi
+# TODO: install TestSwarm later.
+#sudo apt-get -y install mysql-server nginx php5
+#if [ ! -d ~/testswarm ]; then
+#  git clone https://github.com/jquery/testswarm.git
+#  sudo cp testswarm/config/nginx-sample.conf /etc/nginx/sites-available/nginx.conf
+#fi
 
 
 # The apt-get should have started up Jenkins.
