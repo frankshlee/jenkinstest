@@ -46,7 +46,7 @@ cd ~/
 # install Jenkins and java stuff for java testing.
 grep pkg.jenkins-ci.org /etc/apt/sources.list
 already_there=`echo $?`
-if [ $already_there -ne 0 ];
+if [ $already_there -ne 0 ]; then
   wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | apt-key add -
   exitok $? _____________________added_jenkins_key_to_apt_________o
   echo "deb http://pkg.jenkins-ci.org/debian binary/" | tee -a /etc/apt/sources.list
