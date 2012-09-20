@@ -82,49 +82,32 @@ else
 fi
 
 # return 0 is running. return 3 is not running.
-if [ `echo $jenkins_status` -eq 0 ]; then
-  #Jenkins Continuous Integration Server is running with the pid 13591
-  # TODO: if jenkins-cli.jar does not exist, get it.
-  if [ ! -f /usr/share/jenkins/jenkins-cli.jar ]; then
-  	wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
-  fi
-  jenkins_version=`java -jar /usr/share/jenkins/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
-  echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
-  if [ ! -f /usr/share/jenkins/jenkins.war.v$jenkins_version ]; then
-        wget -O jenkins.war.newest --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
-	/etc/init.d/jenkins stop
-  	mv /usr/share/jenkins/jenkins.war /usr/share/jenkins/jenkins.war.v$jenkins_version
-  	mv /usr/share/jenkins/jenkins.war.newest /usr/share/jenkins/jenkins.war
-  	/etc/init.d/jenkins start
-  	sleep 2
-  	echo "Grabbing jenkins-cli.jar."
-  	wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
-  	exitok $? ____________downloaded_jenkins-cli.jar_______________
-  fi
-else
+if [ $jenkins_status -eq 0 ]; then
   /etc/init.d/jenkins start
   sleep 5
-  if [ ! -f /usr/share/jenkins/jenkins-cli.jar ]; then
-  	wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
-  fi
-  jenkins_version=`java -jar /usr/share/jenkins/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
-  echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
-  if [ ! -f /usr/share/jenkins/jenkins.war.v$jenkins_version ]; then
-  	wget -O jenkins.war.newest --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
-  	/etc/init.d/jenkins stop
-  	mv /usr/share/jenkins/jenkins.war /usr/share/jenkins/jenkins.war.v$jenkins_version
-  	mv /usr/share/jenkins/jenkins.war.newest /usr/share/jenkins/jenkins.war
-  	/etc/init.d/jenkins start
-  	sleep 2
-  	# setup Jenkins. Usually a browser to http://machine:8080 works, and manually configure.
-  	# But let's try to do it automatically via cli.
-  	echo "Grabbing jenkins-cli.jar."
-  	wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
-  	exitok $? ____________downloaded_jenkins-cli.jar_______________
-  fi
 fi
 
-exitok $? _____________downloaded_latest_jenkins________________
+#Jenkins Continuous Integration Server is running with the pid #####
+# TODO: if jenkins-cli.jar does not exist, get it.
+if [ ! -f /usr/share/jenkins/jenkins-cli.jar ]; then
+  wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+fi
+
+jenkins_version=`java -jar /usr/share/jenkins/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
+echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
+#move currently installed/running Jenkins aside.
+if [ ! -f /usr/share/jenkins/jenkins.war.v$jenkins_version ]; then
+  wget -O jenkins.war.newest --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
+  /etc/init.d/jenkins stop
+  mv /usr/share/jenkins/jenkins.war /usr/share/jenkins/jenkins.war.v$jenkins_version
+  mv /usr/share/jenkins/jenkins.war.newest /usr/share/jenkins/jenkins.war
+  /etc/init.d/jenkins start
+  sleep 2
+  echo "Grabbing jenkins-cli.jar."
+  wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+  exitok $? ____________downloaded_jenkins-cli.jar_______________
+fi
+
 cd ~/
 
 
