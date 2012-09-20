@@ -84,28 +84,38 @@ fi
 # return 0 is running. return 3 is not running.
 if [ $jenkins_status -eq 0 ]; then
   /etc/init.d/jenkins start
-  sleep 5
+  sleep 10
 fi
 
 #Jenkins Continuous Integration Server is running with the pid #####
 # TODO: if jenkins-cli.jar does not exist, get it.
 if [ ! -f /usr/share/jenkins/jenkins-cli.jar ]; then
   wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+  success=`echo $?`
 fi
 
 jenkins_version=`java -jar /usr/share/jenkins/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
 echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
 #move currently installed/running Jenkins aside.
-if [ ! -f /usr/share/jenkins/jenkins.war.v$jenkins_version ]; then
-  wget -O jenkins.war.newest --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
-  /etc/init.d/jenkins stop
-  mv /usr/share/jenkins/jenkins.war /usr/share/jenkins/jenkins.war.v$jenkins_version
-  mv /usr/share/jenkins/jenkins.war.newest /usr/share/jenkins/jenkins.war
-  /etc/init.d/jenkins start
-  sleep 2
-  echo "Grabbing jenkins-cli.jar."
-  wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
-  exitok $? ____________downloaded_jenkins-cli.jar_______________
+if [ $jenkins_version -ne '' ]; then
+  if [ ! -f /usr/share/jenkins/jenkins.war.v$jenkins_version ]; then
+    wget -O jenkins.war.newest --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
+    /etc/init.d/jenkins stop
+    mv /usr/share/jenkins/jenkins.war /usr/share/jenkins/jenkins.war.v$jenkins_version
+    mv /usr/share/jenkins/jenkins.war.newest /usr/share/jenkins/jenkins.war
+    /etc/init.d/jenkins start
+    sleep 10
+    echo "Grabbing jenkins-cli.jar."
+    wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+    exitok $? ____________downloaded_jenkins-cli.jar_______________
+  fi
+else
+  rm -f /usr/share/jenkins/jenkins.war.v
+  if [ $success -ne 0 ]; then 
+    #file corrupt. get rid of it and get another.
+    rm -f /usr/share/jenkins/jenkins-cli.jar
+    wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+  fi
 fi
 
 cd ~/
@@ -126,8 +136,8 @@ cd ~/
 # The apt-get should have started up Jenkins.
 # It takes some time for Jenkins to download the latest plugins
 sleep 10
-java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8080 version
-echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
+#java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8080 version
+#echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
 
 # Update the Plugins
 curl  -L http://updates.jenkins-ci.org/update-center.json | sed '1d;$d' | curl -X POST -H 'Accept: application/json' -d @- http://localhost:8080/updateCenter/byId/default/postBack
