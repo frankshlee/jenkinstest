@@ -97,7 +97,7 @@ fi
 jenkins_version=`java -jar /usr/share/jenkins/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
 echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
 #move currently installed/running Jenkins aside.
-if [ $jenkins_version -ne '' ]; then
+if [ `echo $jenkins_version` -gt 0 ]; then
   if [ ! -f /usr/share/jenkins/jenkins.war.v$jenkins_version ]; then
     wget -O jenkins.war.newest --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
     /etc/init.d/jenkins stop
@@ -111,7 +111,7 @@ if [ $jenkins_version -ne '' ]; then
   fi
 else
   rm -f /usr/share/jenkins/jenkins.war.v
-  if [ $success -ne 0 ]; then 
+  if [ `echo $success` -ne 0 ]; then 
     #file corrupt. get rid of it and get another.
     rm -f /usr/share/jenkins/jenkins-cli.jar
     wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
