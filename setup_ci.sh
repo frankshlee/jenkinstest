@@ -71,7 +71,7 @@ cd /usr/share/jenkins
 #To connect to updates.jenkins-ci.org insecurely, use '--no-check-certificate'.
 # also...
 # don't check if it exists, because the old version may exist.
-if [ ! -f /etc/init.d/jenkins ]; then
+if [ -f /etc/init.d/jenkins ]; then
   /etc/init.d/jenkins status
   jenkins_status=`echo $?`
 else
