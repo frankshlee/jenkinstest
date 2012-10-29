@@ -111,7 +111,7 @@ if [ $jenkins_version -gt 0 ]; then
   fi
 else
   rm -f /usr/share/jenkins/jenkins.war.v
-  if [ `echo $success` -ne 0 ]; then 
+  if [ $success -ne 0 ]; then 
     #file corrupt. get rid of it and get another.
     rm -f /usr/share/jenkins/jenkins-cli.jar
     wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
