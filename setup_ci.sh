@@ -50,6 +50,7 @@ if [ $already_there -ne 0 ]; then
   wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | apt-key add -
   exitok $? _____________________added_jenkins_key_to_apt_________o
   echo "deb http://pkg.jenkins-ci.org/debian binary/" | tee -a /etc/apt/sources.list
+  apt-get update
 fi
 
 if [ ! -d /usr/lib/jvm/java-6-openjdk ]; then
