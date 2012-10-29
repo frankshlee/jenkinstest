@@ -53,11 +53,10 @@ if [ $already_there -ne 0 ]; then
   apt-get update
 fi
 
-if [ ! -d /usr/lib/jvm/java-6-openjdk ]; then
-  apt-get update
-  apt-get -y install openjdk-6-jre openjdk-6-jdk ant maven2 clamav git curl
-  exitok $? ____________installed_openjdk-6_sdk_jre_ant_maven2_clamav_git____________
-fi
+# ensure that these packages are installed:
+apt-get update
+apt-get -y install openjdk-6-jre openjdk-6-jdk ant maven2 clamav git curl
+exitok $? ____________installed_openjdk-6_sdk_jre_ant_maven2_clamav_git____________
 
 # install jenkins
 #if [ ! -f /usr/share/jenkins/jenkins.war ]; then
@@ -98,7 +97,7 @@ fi
 jenkins_version=`java -jar /usr/share/jenkins/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
 echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
 #move currently installed/running Jenkins aside.
-if [ `echo $jenkins_version` -gt 0 ]; then
+if [ $jenkins_version -gt 0 ]; then
   if [ ! -f /usr/share/jenkins/jenkins.war.v$jenkins_version ]; then
     wget -O jenkins.war.newest --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
     /etc/init.d/jenkins stop
