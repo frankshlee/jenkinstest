@@ -81,6 +81,13 @@ else
   exit 1
 fi
 
+# Somewhere the default port from 8080 (haproxy uses it) to 8880.
+# in /etc/default/jenkins and /etc/init.d/jenkins
+# /etc/default/jenkins:
+sed -i 's/HTTP_PORT=8080/HTTP_PORT=8880/g' /etc/default/jenkins
+# /etc/init.d/jenkins:
+sed -i 's/8080/8880/g' /etc/init.d/jenkins
+
 # return 0 is running. return 3 is not running.
 if [ $jenkins_status -eq 0 ]; then
   /etc/init.d/jenkins start
@@ -90,11 +97,11 @@ fi
 #Jenkins Continuous Integration Server is running with the pid #####
 # TODO: if jenkins-cli.jar does not exist, get it.
 if [ ! -f /usr/share/jenkins/jenkins-cli.jar ]; then
-  wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+  wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8880/jnlpJars/jenkins-cli.jar
   success=`echo $?`
 fi
 
-jenkins_version=`java -jar /usr/share/jenkins/jenkins-cli.jar -s http://192.168.2.188:8080/cli version`
+jenkins_version=`java -jar /usr/share/jenkins/jenkins-cli.jar -s http://192.168.2.188:8880/cli version`
 echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
 #move currently installed/running Jenkins aside.
 if [ $jenkins_version -gt 0 ]; then
@@ -106,7 +113,7 @@ if [ $jenkins_version -gt 0 ]; then
     /etc/init.d/jenkins start
     sleep 10
     echo "Grabbing jenkins-cli.jar."
-    wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+    wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8880/jnlpJars/jenkins-cli.jar
     exitok $? ____________downloaded_jenkins-cli.jar_______________
   fi
 else
@@ -114,7 +121,7 @@ else
   if [ $success -ne 0 ]; then 
     #file corrupt. get rid of it and get another.
     rm -f /usr/share/jenkins/jenkins-cli.jar
-    wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8080/jnlpJars/jenkins-cli.jar
+    wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:8880/jnlpJars/jenkins-cli.jar
   fi
 fi
 
@@ -136,19 +143,19 @@ cd ~/
 # The apt-get should have started up Jenkins.
 # It takes some time for Jenkins to download the latest plugins
 sleep 10
-#java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8080 version
+#java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8880 version
 #echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
 
 # Update the Plugins
-curl  -L http://updates.jenkins-ci.org/update-center.json | sed '1d;$d' | curl -X POST -H 'Accept: application/json' -d @- http://localhost:8080/updateCenter/byId/default/postBack
-#java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8080 restart
+curl  -L http://updates.jenkins-ci.org/update-center.json | sed '1d;$d' | curl -X POST -H 'Accept: application/json' -d @- http://localhost:8880/updateCenter/byId/default/postBack
+#java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8880 restart
 sleep 20
-java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8080 install-plugin cvs subversion translation git github audit-trail createjobadvanced blame-upstream-commiters email-ext statusmonitor all-changes dry log-parser pmd violations ws-cleanup clamav ansicolor token-macro maven-plugin instant-messaging xcode-plugin skype-notifier growl ircbot greenballs simple-theme-plugin
+java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8880 install-plugin cvs subversion translation git github audit-trail createjobadvanced blame-upstream-commiters email-ext statusmonitor all-changes dry log-parser pmd violations ws-cleanup clamav ansicolor token-macro maven-plugin instant-messaging xcode-plugin skype-notifier growl ircbot greenballs simple-theme-plugin
 echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
 sleep 60
-java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8080 restart
+java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:8880 restart
 echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
 sleep 10
 
 IPADDR=`/sbin/ifconfig | sed '/Bcast/!d' | awk '{print $2}'| awk '{print $2}' FS=":"`
-echo "Now open your browser and look at http://${IPADDR}:8080"
+echo "Now open your browser and look at http://${IPADDR}:8880"
