@@ -1,6 +1,7 @@
 #!/bin/bash
 set -x
 
+export LC_ALL=C
 GROOVY_HOME="/usr/share/groovy"
 JAVA_HOME="/usr/lib/jvm/java-6-openjdk"
 # Make Jenkins listen on this port. Default is 8080, which clashes with HAProxy.
@@ -73,49 +74,52 @@ cd /usr/share/jenkins
 #To connect to updates.jenkins-ci.org insecurely, use '--no-check-certificate'.
 # also...
 # don't check if it exists, because the old version may exist.
-if [ -f /etc/init.d/jenkins ]; then
-  /etc/init.d/jenkins status
-  jenkins_status=`echo $?`
-else
-  echo "the /etc/init.d/jenkins startup script is missing. Jenkins installation is incomplete."
-  echo "apt-get remote jenkins to remove but keep configs if you make any config changes."
-  echo "apt-get purge jenkins to remove everything including configs. And fix script."
-  exit 1
-fi
+#if [ -f /etc/init.d/jenkins ]; then
+#  /etc/init.d/jenkins status
+#  jenkins_status=`echo $?`
+#else
+#  echo "the /etc/init.d/jenkins startup script is missing. Jenkins installation is incomplete."
+#  echo "apt-get remote jenkins to remove but keep configs if you make any config changes."
+#  echo "apt-get purge jenkins to remove everything including configs. And fix script."
+#  exit 1
+#fi
 
 # Somewhere the default port from 8080 (haproxy uses it) to $JENKINS_PORT.
 # in /etc/default/jenkins and /etc/init.d/jenkins
 # /etc/default/jenkins:
 sed -i "s/HTTP_PORT=8080/HTTP_PORT=${JENKINS_PORT}/g" /etc/default/jenkins
+# and listen on tcp, not just tcp6
+sed -i 's/#JAVA_ARGS=\"-Djava.net.preferIPv4Stack=true/JAVA_ARGS=\"-Djava.net.preferIPv4Stack=true/' /etc/default/jenkins
+
 # /etc/init.d/jenkins:
 sed -i "s/8080/${JENKINS_PORT}/g" /etc/init.d/jenkins
 
-# return 0 is running. return 3 is not running.
-echo "Restarting Jenkins with non-default port of 
-/etc/init.d/jenkins restart
-sleep 10
 
 #Jenkins Continuous Integration Server is running with the pid #####
-# TODO: if jenkins-cli.jar does not exist, get it.
-if [ ! -f /usr/share/jenkins/jenkins-cli.jar ]; then
-  if [[ "$jenkins_status" -ne "0" ]]; then
-    echo "Jenkins is not running. Starting up Jenkins."
-    /etc/init.d/jenkins start
-    /etc/init.d/jenkins status
-    jenkins_status=`echo $?`
-    if [[ "$jenkins_status" -ne "0" ]]; then
-      echo "Jenkins will not start up. Exiting..."
-      exit 1
-    fi
-  wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:${JENKINS_PORT}/jnlpJars/jenkins-cli.jar
-  success=`echo $?`
+# Get the latest jenkins-cli.jar
+# return 0 is running. return 3 is not running.
+echo "Restarting Jenkins with non-default port of ${JENKINS_PORT}"
+JENKINS_PID=`ps auxw | grep /usr/bin/java | grep -v daemon | grep -v grep | awk '{print $2}'`
+kill -9 $JENKINS_PID
+/etc/init.d/jenkins start
+sleep 45
+/etc/init.d/jenkins status
+jenkins_status=`echo $?`
+
+if [[ "$jenkins_status" -ne "0" ]]; then
+  echo "Jenkins will not start up. Exiting..."
+  exit 1
 fi
+rm -f /usr/share/jenkins/jenkins-cli.jar
+wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:${JENKINS_PORT}/jnlpJars/jenkins-cli.jar
+success=`echo $?`
+
 
 jenkins_version=`java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:${JENKINS_PORT}/cli version`
 echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
 #move currently installed/running Jenkins aside.
-if [ $jenkins_version -gt 0 ]; then
-  if [ ! -f /usr/share/jenkins/jenkins.war.v$jenkins_version ]; then
+if [[ "$jenkins_version" -gt "0" ]]; then
+  if [[ ! -f /usr/share/jenkins/jenkins.war.v$jenkins_version ]]; then
     wget -O jenkins.war.newest --no-check-certificate https://updates.jenkins-ci.org/latest/jenkins.war
     /etc/init.d/jenkins stop
     mv /usr/share/jenkins/jenkins.war /usr/share/jenkins/jenkins.war.v$jenkins_version
@@ -128,7 +132,7 @@ if [ $jenkins_version -gt 0 ]; then
   fi
 else
   rm -f /usr/share/jenkins/jenkins.war.v
-  if [ $success -ne 0 ]; then 
+  if [[ "$success" -ne 0 ]]; then 
     #file corrupt. get rid of it and get another.
     rm -f /usr/share/jenkins/jenkins-cli.jar
     wget -O /usr/share/jenkins/jenkins-cli.jar http://localhost:${JENKINS_PORT}/jnlpJars/jenkins-cli.jar
