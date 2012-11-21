@@ -164,7 +164,7 @@ sleep 10
 curl  -L http://updates.jenkins-ci.org/update-center.json | sed '1d;$d' | curl -X POST -H 'Accept: application/json' -d @- http://localhost:${JENKINS_PORT}/updateCenter/byId/default/postBack
 #java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:${JENKINS_PORT} restart
 sleep 20
-java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:${JENKINS_PORT} install-plugin cvs subversion translation git github audit-trail createjobadvanced blame-upstream-commiters email-ext statusmonitor all-changes dry log-parser pmd violations ws-cleanup clamav ansicolor token-macro maven-plugin instant-messaging xcode-plugin skype-notifier growl ircbot greenballs simple-theme-plugin gerrit gerrit-trigger
+java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:${JENKINS_PORT} install-plugin cvs subversion translation git github audit-trail createjobadvanced blame-upstream-commiters email-ext statusmonitor all-changes dry log-parser pmd violations ws-cleanup clamav ansicolor token-macro maven-plugin instant-messaging xcode-plugin skype-notifier growl ircbot greenballs simple-theme-plugin gerrit-trigger
 echo "If it just displayed \"Failed to authenticate with your SSH keys.\", please ignore."
 sleep 60
 java -jar /usr/share/jenkins/jenkins-cli.jar -s http://localhost:${JENKINS_PORT} restart
