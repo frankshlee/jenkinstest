@@ -89,7 +89,7 @@ cd /usr/share/jenkins
 # /etc/default/jenkins:
 sed -i "s/HTTP_PORT=8080/HTTP_PORT=${JENKINS_PORT}/g" /etc/default/jenkins
 # and listen on tcp, not just tcp6
-sed -i 's/#JAVA_ARGS=\"-Djava.net.preferIPv4Stack=true/JAVA_ARGS=\"-Djava.net.preferIPv4Stack=true/' /etc/default/jenkins
+sed -i 's/#JAVA_ARGS=\"-Djava.net.preferIPv4Stack=true/JAVA_ARGS=\"-Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF8/' /etc/default/jenkins
 
 # /etc/init.d/jenkins:
 sed -i "s/8080/${JENKINS_PORT}/g" /etc/init.d/jenkins
